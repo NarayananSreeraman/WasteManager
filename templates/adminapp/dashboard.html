@@ -1,6 +1,6 @@
 {% extends "adminapp/base.html" %}
 
-{% block title %}Admin Dashboard{% endblock %}
+{% block title %}Waste Manager Admin{% endblock %}
 
 {% block content %}
 <!-- Background with circles -->
@@ -48,9 +48,14 @@
             <i class="fas fa-users text-3xl mb-2"></i>
             <p class="font-semibold">Manage Users</p>
         </a>
+    </div>
+
+    <!-- Login Redirect Button -->
+    <div class="text-center mt-8">
+        <a href="{% url 'login_user' %}" class="inline-block border border-yellow-600 text-yellow-600 font-semibold py-2 px-4 rounded-md shadow-md hover:bg-orange-500 hover:text-white transition duration-300">
+            Back to Login
         </a>
     </div>
 </div>
 
 {% endblock %}
-
