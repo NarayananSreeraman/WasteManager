@@ -12,6 +12,8 @@ from django.http import HttpResponse
 from django.conf import settings
 from profileapp.models import UserProfile
 from django.urls import reverse_lazy
+from django.core.validators import validate_email
+
 # Create your views here.
 
 def home(request):
@@ -47,33 +49,54 @@ class CustomLoginView(LoginView):
 
 def RegisterView(request):
     if request.method == "POST":
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        password = request.POST.get('password')
-        password_confirm = request.POST.get('password_confirm')
-        role = request.POST.get('role')  # Capture the role field
+        # Extract form data
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        password = request.POST.get('password', '').strip()
+        password_confirm = request.POST.get('password_confirm', '').strip()
+        role = request.POST.get('role', '').strip()
 
-        print(f"Role selected: {role}")  # Debugging
+        errors = {}
 
-        if role == "admin":
-            messages.error(request, "You cannot register as an admin.")
-            return redirect('register_user')
+        # 1. Username validation
+        if not username:
+            errors['username_error'] = "Username is empty."
+        elif User.objects.filter(username=username).exists():
+            errors['username_error'] = "Username already exists."
 
-        if password != password_confirm:
-            messages.error(request, "Passwords do not match.")
-            return redirect('register_user')
+        # 2. Email validation
+        if not email:
+            errors['email_error'] = "Email is empty."
+        else:
+            try:
+                validate_email(email)
+                if User.objects.filter(email=email).exists():
+                    errors['email_error'] = "Email already exists."
+            except ValidationError:
+                errors['email_error'] = "Invalid email format."
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists.")
-            return redirect('register_user')
+        # 3. Password validation
+        if not password:
+            errors['password_error'] = "Password is empty."
+        elif password != password_confirm:
+            errors['password_error'] = "Passwords do not match!"
 
-        if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already exists.")
-            return redirect('register_user')
+        # 4. First and last name validations
+        if not first_name:
+            errors['first_name_error'] = "First Name is empty."
+        if not last_name:
+            errors['last_name_error'] = "Last Name is empty."
 
-        # Create user
+        # If there are validation errors, re-render the form with errors and data
+        if errors:
+            return render(request, 'register.html', {
+                **errors,  # Pass all error messages
+                'form_data': request.POST  # Refill form fields with entered data
+            })
+
+        # If validation passes, create the user
         try:
             user = User.objects.create_user(
                 username=username,
@@ -83,19 +106,24 @@ def RegisterView(request):
                 password=password
             )
 
-            # Ensure role is correctly set in the UserProfile
+            # Set the role in UserProfile
             user_profile, created = UserProfile.objects.get_or_create(user=user)
             user_profile.role = role
             user_profile.save()
 
+            # Redirect to login with success message
             messages.success(request, "Registration successful. Please log in.")
             return redirect('login_user')
 
         except Exception as e:
-            messages.error(request, f"Error: {e}")
+            # Log any unexpected errors and return a friendly error message
+            messages.error(request, "An unexpected error occurred. Please try again.")
             return redirect('register_user')
 
+    # Render the registration form for GET requests
     return render(request, 'register.html')
+
+
 
 
 
