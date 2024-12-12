@@ -43,14 +43,24 @@ def submit_waste_request(request):
 
                 # Send email notification to admin
                 try:
-                    pending_requests_url = request.build_absolute_uri(reverse('adminapp:manage_pending_requests'))
+                    login_url = request.build_absolute_uri(reverse('login_user'))  # Change to your login URL name
                     admin_email = "wastemanager2024@gmail.com"  # Replace with admin email address
+                    email_subject = "New Waste Collection Request Submitted"
+                    email_message = f """ //Delete the space between f and three double quotes before execution
+                    <html>
+                        <body>
+                        <img src="https://hpgconsulting.com/wp-content/uploads/2019/12/Waste-Management-System.jpg" alt="Waste Management" style="width:600px;height:auto;">
+                            <h2>A new waste collection request has been submitted!</h2>
+                            <p>Check the pending requests at <a href="{login_url}">Login here</a>.</p>
+                        </body>
+                    </html>"""
                     send_mail(
-                        subject="New Waste Collection Request Submitted",
-                        message=f"A new waste collection request has been submitted. Check pending requests at {pending_requests_url}",
+                        subject=email_subject,
+                        message=email_message,
                         from_email=settings.EMAIL_HOST_USER,
                         recipient_list=[admin_email],
                         fail_silently=False,
+                        html_message=email_message  # Send as HTML
                     )
                 except BadHeaderError:
                     messages.error(request, "Invalid email header detected.")
