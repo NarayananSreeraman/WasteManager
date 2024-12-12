@@ -64,13 +64,6 @@ def view_driver_details(request, driver_id):
         'driver_profile': driver_profile
     })
 
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from django.shortcuts import redirect, get_object_or_404
-from django.contrib import messages
-from django.contrib.auth.models import User
-
 
 import smtplib
 from email.mime.text import MIMEText
@@ -92,7 +85,7 @@ def send_email(request, user_id):
     current = str(datetime.now())
     subject = 'WASTE COLLECTION CONFIRMATION'
     current = datetime.now()  # Get the current date and time
-    body = 'Greetings, dear {name}! Your waste has been collected at {current_time}. Thank you for using our software!'.format(
+    body = 'Greetings, dear User! Your waste has been collected at {current_time} by {name}. Thank you for using our software!'.format(
         name=request.user.first_name,
         current_time=current,
     )
